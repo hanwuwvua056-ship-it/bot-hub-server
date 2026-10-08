@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bot Hub</title>
+<style>
+:root{--bg:#0f1115;--card:#181b22;--line:#2a2f3a;--tx:#e6e8ee;--mu:#8b92a3;--ac:#5865f2;--ok:#3ba55d;--er:#ed4245}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.5 system-ui,-apple-system,"Malgun Gothic",sans-serif}
+header{display:flex;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--card);position:sticky;top:0;z-index:5}
+.logo{font-weight:700;font-size:16px}nav{display:flex;gap:4px;flex:1;overflow-x:auto}
+.tab{background:none;border:0;color:var(--mu);padding:8px 12px;border-radius:6px;cursor:pointer;font:inherit;white-space:nowrap}
+.tab.on{background:var(--ac);color:#fff}.right{display:flex;gap:8px;align-items:center}
+.me{color:var(--mu);font-size:12px}
+button,input,select{font:inherit}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:6px;padding:8px 14px;cursor:pointer}
+.btn.g{background:#2a2f3a}.btn.d{background:var(--er)}.btn.s{padding:4px 10px;font-size:12px}
+input,select{background:#0f1115;border:1px solid var(--line);color:var(--tx);border-radius:6px;padding:8px 10px;width:100%}
+main{max-width:960px;margin:24px auto;padding:0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px}
+h2{margin:0 0 12px;font-size:16px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row>*{flex:1;min-width:120px}.row>.btn{flex:0 0 auto}
+.list>div{display:flex;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.list>div:first-child{border-top:0}.grow{flex:1;min-width:0;word-break:break-all}.mu{color:var(--mu);font-size:12px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--mu);display:inline-block}.dot.on{background:var(--ok)}.dot.err{background:var(--er)}
+.landing{max-width:980px;margin:56px auto;padding:0 16px;display:grid;grid-template-columns:1.2fr 1fr;gap:48px;align-items:center}
+.landing.hide{display:none!important}.authcard{margin:0}.authcard>*{margin-bottom:10px}
+.hero h1{font-size:34px;line-height:1.3;margin:0 0 14px;letter-spacing:-.5px}.hero p{color:var(--mu);font-size:15px;margin:0 0 22px}
+.feat{list-style:none;padding:0;margin:0;display:grid;gap:12px}.feat li{display:flex;gap:12px;align-items:flex-start}
+.feat i{font-style:normal;width:36px;height:36px;border-radius:8px;background:#22263a;display:flex;align-items:center;justify-content:center;flex:0 0 36px}
+.feat b{display:block}.feat span{color:var(--mu);font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}.stat b{font-size:26px;display:block}.stat span{color:var(--mu);font-size:12px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:16px}
+.fcard{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;cursor:pointer;transition:border-color .15s}.fcard:hover{border-color:var(--ac)}
+.fcard .ic{font-size:22px}.fcard b{display:block;margin:6px 0 2px}.fcard span{color:var(--mu);font-size:13px}
+.step{display:flex;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}.step:first-of-type{border-top:0}
+.chk{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;flex:0 0 22px}.chk.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+footer{text-align:center;color:var(--mu);font-size:12px;padding:32px 16px 40px}
+@media(max-width:760px){.landing{grid-template-columns:1fr;margin-top:28px;gap:28px}.hero h1{font-size:26px}}
+.modal{position:fixed;inset:0;background:#000a;display:none;align-items:flex-start;justify-content:center;padding:60px 16px;overflow:auto;z-index:10}
+.modal.on{display:flex}.modal .card{width:100%;max-width:620px}
+.msg{color:var(--er);font-size:12px;min-height:16px}.log{font-family:monospace;font-size:12px;max-height:180px;overflow:auto;color:var(--mu)}
+.warn{background:#3a2f12;border:1px solid #6b5518;color:#e8d08a;padding:10px 12px;border-radius:8px;font-size:12px;margin-bottom:12px}
+.hide{display:none!important}
+.success{color:var(--ok)}
+</style>
+</head>
+<body>
+<header>
+  <span class="logo">🤖 Bot Hub</span>
+  <nav id="nav"></nav>
+  <div class="right hide" id="userbox">
+    <span class="me" id="me"></span>
+    <button class="btn g" id="btnBots">봇 관리</button>
+    <button class="btn g" id="btnOut">로그아웃</button>
+  </div>
+</header>
+
+<main id="auth" class="landing">
+  <section class="hero">
+    <h1>디스코드 봇 자동 응답,<br>코딩 없이 간단하게.</h1>
+    <p>봇 토큰만 등록하면 원하는 서버에서 원하는 말에 자동으로 답장하는 봇을 만들 수 있어요.</p>
+    <ul class="feat">
+      <li><i>🤖</i><div><b>여러 봇 관리</b><span>봇을 여러 개 등록하고 한곳에서 시작·중지할 수 있어요.</span></div></li>
+      <li><i>💬</i><div><b>서버별 자동 응답</b><span>서버마다 감지할 말과 답장 내용을 따로 설정해요.</span></div></li>
+      <li><i>🧩</i><div><b>계속 늘어나는 기능</b><span>하나의 사이트에서 다양한 기능을 함께 사용해요.</span></div></li>
+    </ul>
+  </section>
+  <div class="card authcard">
+    <h2 id="authTitle">로그인</h2>
+    <div id="emailBox">
+      <input id="aEmail" type="email" placeholder="이메일" autocomplete="email">
+      <input id="aPw" type="password" placeholder="비밀번호 (6자 이상)" autocomplete="current-password">
+      <div class="msg" id="aMsg"></div>
+      <button class="btn" id="aGo" style="width:100%">로그인</button>
+      <button class="btn g" id="aSwap" style="width:100%;margin-top:10px">회원가입으로 전환</button>
+    </div>
+  </div>
+</main>
+
+<main id="app" class="hide"></main>
+<footer>© Bot Hub · 봇 토큰은 본인 브라우저에만 저장됩니다 · 디스코드는 Discord Inc.의 상표입니다</footer>
+
+<div class="modal" id="botModal">
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><h2 style="flex:1">봇 관리</h2><button class="btn g s" id="botClose">닫기</button></div>
+    <div class="warn">⚠️ 봇 토큰은 비밀번호와 같습니다. 이 브라우저(localStorage)에 저장되며 절대 타인에게 공유하지 마세요. 봇은 이 페이지가 열려 있는 동안 동작합니다.</div>
+    <div class="row"><input id="bName" placeholder="봇 별명 (선택)"><input id="bToken" type="password" placeholder="봇 토큰"><button class="btn" id="bAdd">등록</button></div>
+    <div class="msg" id="bMsg"></div>
+    <div class="list" id="botList"></div>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid8=()=>Math.random().toString(36).slice(2,10);
+
+/* ---- Storage adapter ---- */
+const Backend={
+  _g(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch{return d}},
+  _s(k,v){localStorage.setItem(k,JSON.stringify(v))},
+  async hash(pw){
+    try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('hub::'+pw));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+    catch{return btoa(unescape(encodeURIComponent(pw)))}
+  },
+  async signup(email,pw){
+    const u=this._g('hub:users',{});email=email.trim().toLowerCase();
+    if(!/^\S+@\S+\.\S+$/.test(email))throw '올바른 이메일을 입력하세요.';
+    if(pw.length<6)throw '비밀번호는 6자 이상이어야 합니다.';
+    if(u[email])throw '이미 가입된 이메일입니다.';
+    u[email]={id:uid8()+uid8(),pw:await this.hash(pw)};this._s('hub:users',u);
+    return {id:u[email].id,email};
+  },
+  async login(email,pw){
+    const u=this._g('hub:users',{});email=email.trim().toLowerCase();
+    if(!u[email]||u[email].pw!==await this.hash(pw))throw '이메일 또는 비밀번호가 올바르지 않습니다.';
+    return {id:u[email].id,email};
+  },
+  session(){return this._g('hub:session',null)},
+  setSession(s){s?this._s('hub:session',s):localStorage.removeItem('hub:session')},
+  get(uid,mod,key,d){return this._g(`hub:u:${uid}:${mod}:${key}`,d)},
+  set(uid,mod,key,v){this._s(`hub:u:${uid}:${mod}:${key}`,v)}
+};
+
+/* ---- Hub ---- */
+const Hub=(()=>{
+  const mods=[],handlers={};let user=null,current=null;
+  const api={
+    register(m){mods.push(m);},
+    on(ev,fn){(handlers[ev]=handlers[ev]||[]).push(fn)},
+    emit(ev,data){(handlers[ev]||[]).forEach(f=>{try{f(data)}catch(e){console.error('[hub handler]',ev,e)}})},
+    user:()=>user,
+    db:{
+      get:(mod,key,d)=>user?Backend.get(user.id,mod,key,d):d,
+      set:(mod,key,v)=>user&&Backend.set(user.id,mod,key,v)
+    },
+    bots:()=>Backend.get(user.id,'core','bots',[]),
+    servers:()=>Backend.get(user.id,'core','servers',[]),
+    _saveBots:b=>Backend.set(user.id,'core','bots',b),
+    _saveServers:s=>Backend.set(user.id,'core','servers',s),
+    async send(botId,channelId,text){
+      const b=api.bots().find(x=>x.id===botId);if(!b)throw new Error('봇을 찾을 수 없음');
+      try{
+        const r=await fetch('https://discord.com/api/v10/channels/'+channelId+'/messages',{
+          method:'POST',
+          headers:{'Authorization':'Bot '+b.token,'Content-Type':'application/json'},
+          body:JSON.stringify({content:text})
+        });
+        if(!r.ok){let m='';try{const j=await r.json();m=` [${j.code||''}] ${j.message||''}`}catch{}throw new Error('HTTP '+r.status+m);}
+      }catch(e){throw new Error(e.message||'메시지 전송 실패');}
+    },
+    status:{},
+    setStatus(id,s,why){api.status[id]={s,why};api.emit('status',{id,s,why});}
+  };
+  function renderNav(){
+    $('#nav').innerHTML=mods.map(m=>`<button class="tab ${m.id===current?'on':''}" data-m="${m.id}">${esc(m.name)}</button>`).join('');
+    $('#nav').querySelectorAll('.tab').forEach(b=>b.onclick=()=>show(b.dataset.m));
+  }
+  function show(id){
+    current=id;renderNav();const app=$('#app');app.innerHTML='';
+    mods.forEach(m=>{const d=document.createElement('section');d.id='mod-'+m.id;d.className='hide';app.appendChild(d);});
+    const m=mods.find(x=>x.id===id);if(!m)return;
+    const el=$('#mod-'+id);el.classList.remove('hide');
+    try{m.render(el)}catch(e){el.innerHTML='<div class="card">모듈 오류: '+esc(e.message)+'</div>';console.error(e)}
+  }
+  api.refresh=()=>show(current);
+  api.show=show;api.modules=()=>mods;
+  api.enter=u=>{
+    user=u;$('#auth').classList.add('hide');$('#app').classList.remove('hide');$('#userbox').classList.remove('hide');
+    $('#me').textContent=u.email;
+    mods.forEach(m=>{try{m.onUserChange&&m.onUserChange(u)}catch(e){console.error(e)}});
+    Runtime.startAll();show(current||(mods[0]&&mods[0].id));
+  };
+  api.leave=()=>{
+    Runtime.stopAll();user=null;Backend.setSession(null);
+    mods.forEach(m=>{try{m.onUserChange&&m.onUserChange(null)}catch(e){}});
+    $('#app').classList.add('hide');$('#userbox').classList.add('hide');$('#auth').classList.remove('hide');$('#nav').innerHTML='';
+  };
+  return api;
+})();
+
+/* ---- Runtime: 봇 연결 ---- */
+const Runtime=(()=>{
+  const conns={};
+  const FATAL={4004:'토큰이 올바르지 않습니다.',4013:'인텐트 설정 오류',4014:'개발자 포털에서 MESSAGE CONTENT INTENT를 켜야 합니다.'};
+  class Conn{
+    constructor(bot){this.bot=bot;this.seq=null;this.stop=false;this.open();}
+    open(){
+      Hub.setStatus(this.bot.id,'off');
+      const ws=this.ws=new WebSocket('wss://gateway.discord.gg/?v=10&encoding=json');
+      ws.onmessage=e=>{
+        const p=JSON.parse(e.data);if(p.s!=null)this.seq=p.s;
+        if(p.op===10){
+          clearInterval(this.hb);this.hb=setInterval(()=>ws.readyState===1&&ws.send(JSON.stringify({op:1,d:this.seq})),p.d.heartbeat_interval);
+          ws.send(JSON.stringify({op:2,d:{token:this.bot.token,intents:33281,properties:{os:'web',browser:'bot-hub',device:'bot-hub'}}}));
+        }else if(p.op===7||p.op===9){ws.close();
+        }else if(p.op===0){
+          if(p.t==='READY'){this.me=p.d.user;Hub.setStatus(this.bot.id,'on');}
+          if(p.t==='MESSAGE_CREATE')Hub.emit('message',{botId:this.bot.id,botUserId:this.me&&this.me.id,msg:p.d});
+        }
+      };
+      ws.onclose=e=>{
+        clearInterval(this.hb);
+        if(this.stop)return Hub.setStatus(this.bot.id,'off');
+        if(FATAL[e.code]){this.stop=true;return Hub.setStatus(this.bot.id,'err',FATAL[e.code]);}
+        Hub.setStatus(this.bot.id,'off');setTimeout(()=>!this.stop&&this.open(),5000);
+      };
+      ws.onerror=()=>{};
+    }
+    close(){this.stop=true;clearInterval(this.hb);try{this.ws.close()}catch{}}
+  }
+  return {
+    start(bot){this.stop(bot.id);conns[bot.id]=new Conn(bot);},
+    stop(id){if(conns[id]){conns[id].close();delete conns[id];}Hub.setStatus(id,'off');},
+    startAll(){Hub.bots().filter(b=>b.autostart!==false).forEach(b=>this.start(b));},
+    stopAll(){Object.keys(conns).forEach(id=>this.stop(id));}
+  };
+})();
+
+/* ---- Auth UI ---- */
+let signup=false;
+const setAuthMode=()=>{
+  $('#authTitle').textContent=signup?'회원가입':'로그인';
+  $('#aGo').textContent=signup?'가입하기':'로그인';
+  $('#aSwap').textContent=signup?'로그인으로 전환':'회원가입으로 전환';
+  $('#aMsg').textContent='';
+};
+$('#aSwap').onclick=()=>{signup=!signup;setAuthMode()};
+const doAuth=async()=>{
+  try{
+    const e=$('#aEmail').value,p=$('#aPw').value;
+    const u=signup?await Backend.signup(e,p):await Backend.login(e,p);
+    Backend.setSession(u);$('#aPw').value='';Hub.enter(u);
+  }catch(err){$('#aMsg').textContent=typeof err==='string'?err:'오류가 발생했습니다.'}
+};
+$('#aGo').onclick=doAuth;$('#aPw').onkeydown=e=>{if(e.key==='Enter')doAuth();};
+$('#btnOut').onclick=()=>Hub.leave();
+
+/* ---- 봇 관리 모달 ---- */
+const bm={
+  open(){$('#botModal').classList.add('on');this.draw()},
+  close(){$('#botModal').classList.remove('on');Hub.refresh()},
+  draw(){
+    const bots=Hub.bots();
+    $('#botList').innerHTML=bots.length?bots.map(b=>{const st=Hub.status[b.id]||{s:'off'};
+      return `<div><span class="dot ${st.s}" data-dot="${b.id}"></span><div class="grow"><b>${esc(b.name)}</b> <span class="mu">${esc(b.botTag||'')}</span><div class="mu" data-why="${b.id}">${esc(st.why||'')}</div></div>
+      <button class="btn g s" data-t="${b.id}">${st.s==='on'?'중지':'시작'}</button><button class="btn d s" data-x="${b.id}">삭제</button></div>`}).join(''):'<div class="mu">등록된 봇이 없습니다.</div>';
+    $('#botList').querySelectorAll('[data-t]').forEach(x=>x.onclick=()=>{const b=Hub.bots().find(y=>y.id===x.dataset.t);(Hub.status[b.id]||{}).s==='on'?Runtime.stop(b.id):Runtime.start(b);});
+    $('#botList').querySelectorAll('[data-x]').forEach(x=>x.onclick=()=>{
+      if(!confirm('이 봇을 삭제할까요?'))return;
+      Runtime.stop(x.dataset.x);Hub._saveBots(Hub.bots().filter(b=>b.id!==x.dataset.x));Hub.emit('botsChanged');this.draw();});
+  },
+  async add(){
+    const token=$('#bToken').value.trim(),msg=$('#bMsg');msg.textContent='';
+    if(!token)return msg.textContent='토큰을 입력하세요.';
+    try{
+      const r=await fetch('https://discord.com/api/v10/users/@me',{headers:{Authorization:'Bot '+token}});
+      if(!r.ok)throw 0;const me=await r.json();
+      const bots=Hub.bots();if(bots.some(b=>b.token===token))return msg.textContent='이미 등록된 봇입니다.';
+      const bot={id:uid8(),name:$('#bName').value.trim()||me.username,token,botTag:'@'+me.username};
+      bots.push(bot);Hub._saveBots(bots);$('#bToken').value='';$('#bName').value='';
+      Hub.emit('botsChanged');Runtime.start(bot);this.draw();
+    }catch{msg.textContent='토큰 확인에 실패했습니다.'}
+  }
+};
+$('#btnBots').onclick=()=>bm.open();$('#botClose').onclick=()=>bm.close();$('#bAdd').onclick=()=>bm.add();
+Hub.on('status',({id,s,why})=>{
+  const d=document.querySelector(`[data-dot="${id}"]`);if(d)d.className='dot '+s;
+  const w=document.querySelector(`[data-why="${id}"]`);if(w)w.textContent=why||'';
+  if($('#botModal').classList.contains('on'))bm.draw();
+});
+
+/* ==================== MODULE 0: 홈 ==================== */
+(()=>{
+  const ID='home';
+  function render(el){
+    const u=Hub.user(),bots=Hub.bots(),servers=Hub.servers(),rules=Hub.db.get('autoreply','rules',[]);
+    const on=bots.filter(b=>(Hub.status[b.id]||{}).s==='on').length;
+    const feats=Hub.modules().filter(m=>m.id!==ID);
+    const steps=[
+      [bots.length>0,'봇 등록하기','오른쪽 상단 "봇 관리"에서 토큰을 입력하세요.','<button class="btn s" data-bots>봇 관리</button>'],
+      [servers.length>0,'서버 등록하기','자동 응답 탭에서 서버를 추가하세요.','<button class="btn s" data-go="autoreply">이동</button>'],
+      [rules.length>0,'응답 규칙 만들기','감지할 텍스트와 봇의 답장을 설정하세요.','<button class="btn s" data-go="autoreply">이동</button>']
+    ];
+    el.innerHTML=`<div id="m-home-root">
+      <div class="card"><h2 style="font-size:20px;margin-bottom:4px">안녕하세요, ${esc(u.name||u.email.split('@')[0])}님 👋</h2><div class="mu">봇을 등록하고 원하는 기능을 설정해 보세요.</div></div>
+      <div class="stats">
+        <div class="stat"><b>${bots.length}</b><span>등록된 봇</span></div>
+        <div class="stat"><b>${on}</b><span>실행 중인 봇</span></div>
+        <div class="stat"><b>${servers.length}</b><span>등록된 서버</span></div>
+        <div class="stat"><b>${rules.length}</b><span>응답 규칙</span></div>
+      </div>
+      <div class="card"><h2>시작하기</h2>${steps.map(s=>`<div class="step"><span class="chk ${s[0]?'ok':''}">${s[0]?'✓':''}</span><div class="grow"><b>${s[1]}</b><div class="mu">${s[2]}</div></div>${s[0]?'':s[3]}</div>`).join('')}</div>
+      <h2 style="margin:20px 0 10px">기능</h2>
+      <div class="fgrid">${feats.map(m=>`<div class="fcard" data-go="${m.id}"><div class="ic">${m.icon||'🧩'}</div><b>${esc(m.name)}</b><span>${esc(m.desc||'')}</span></div>`).join('')}</div>
+      <div class="card"><h2>등록된 봇</h2><div class="list">${bots.map(b=>{const st=Hub.status[b.id]||{s:'off'};return `<div><span class="dot ${st.s}"></span><div class="grow"><b>${esc(b.name)}</b> <span class="mu">${esc(b.botTag||'')}</span></div><span class="mu">${st.s==='on'?'🟢 실행 중':st.s==='err'?'🔴 '+esc(st.why||'오류'):'⚫ 중지됨'}</span></div>`}).join('')||'<div class="mu">등록된 봇이 없습니다.</div>'}</div></div>
+    </div>`;
+    el.querySelectorAll('[data-go]').forEach(x=>x.onclick=()=>Hub.show(x.dataset.go));
+    el.querySelectorAll('[data-bots]').forEach(x=>x.onclick=()=>bm.open());
+  }
+  const live=()=>{const r=document.querySelector('#m-home-root');if(r)render(r.parentElement);};
+  Hub.on('status',live);Hub.on('botsChanged',live);
+  Hub.register({id:ID,name:'홈',render});
+})();
+
+/* ==================== MODULE 1: 자동 응답 ==================== */
+(()=>{
+  const ID='autoreply',lastHit={},logs=[];
+  const rules=()=>Hub.db.get(ID,'rules',[]);
+  const save=r=>Hub.db.set(ID,'rules',r);
+  const addLog=t=>{logs.unshift(new Date().toLocaleTimeString()+'  '+t);logs.length=30;const el=document.querySelector('#m-autoreply-log');if(el)el.textContent=logs.join('\n');};
+
+  Hub.on('message',async({botId,botUserId,msg})=>{
+    if(!Hub.user())return;
+    if(!msg.guild_id)return addLog('⚠️ DM은 무시됩니다');
+    if(msg.author.bot||msg.author.id===botUserId)return;
+    const text=(msg.content||'').trim().toLowerCase();
+    if(!text)return addLog('⚠️ MESSAGE CONTENT INTENT 필요');
+    addLog(`📨 [${msg.guild_id}] "${msg.content.slice(0,30)}"`);
+    for(const r of rules()){
+      if(!r.on||r.botId!==botId||(r.serverId&&r.serverId!==msg.guild_id))continue;
+      const t=r.trigger.toLowerCase();
+      const hit=r.mode==='exact'?text===t:r.mode==='start'?text.startsWith(t):text.includes(t);
+      if(!hit)continue;
+      if(Date.now()-(lastHit[r.id]||0)<2000)continue;
+      lastHit[r.id]=Date.now();
+      try{await Hub.send(botId,msg.channel_id,r.reply);addLog(`✅ "${r.trigger}" → 응답 전송`);}
+      catch(e){addLog(`❌ "${r.trigger}" 실패: ${e.message}`);}
+    }
+  });
+
+  Hub.on('status',({id,s,why})=>{
+    if(!Hub.user())return;const b=Hub.bots().find(x=>x.id===id);
+    addLog(`🤖 "${b?b.name:id}" → ${{on:'✅ 연결됨',off:'⚫ 연결 안 됨',err:'🔴 오류 '+(why||'')}[s]}`);
+  });
+
+  function render(el){
+    const bots=Hub.bots(),servers=Hub.servers(),rs=rules();
+    const botOpt=bots.map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join('');
+    const srvOpt='<option value="">모든 서버</option>'+servers.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');
+    el.innerHTML=`
+    <div class="card"><h2>서버 등록</h2>
+      <div class="row"><input id="m-autoreply-sn" placeholder="서버 이름 (구분용)"><input id="m-autoreply-si" placeholder="서버 ID (숫자)"><button class="btn" id="m-autoreply-sa">추가</button></div>
+      <div class="mu" style="margin:6px 0">디스코드 설정 → 고급 → 개발자 모드 ON → 서버 우클릭 → "서버 ID 복사"</div>
+      <div class="list">${servers.map(s=>`<div><div class="grow"><b>${esc(s.name)}</b> <span class="mu">${esc(s.id)}</span></div><button class="btn d s" data-sx="${esc(s.id)}">삭제</button></div>`).join('')||'<div class="mu">등록된 서버가 없습니다.</div>'}</div>
+    </div>
+    <div class="card"><h2>자동 응답 규칙</h2>
+      ${bots.length?'':'<div class="warn">먼저 봇을 등록하세요 (오른쪽 상단 "봇 관리")</div>'}
+      <div class="row"><select id="m-autoreply-b">${botOpt}</select><select id="m-autoreply-s">${srvOpt}</select><select id="m-autoreply-m"><option value="contains">포함하면</option><option value="exact">정확히 일치</option><option value="start">~로 시작하면</option></select></div>
+      <div class="row" style="margin-top:8px"><input id="m-autoreply-t" placeholder="감지할 텍스트"><input id="m-autoreply-r" placeholder="봇이 입력할 텍스트"><button class="btn" id="m-autoreply-a">규칙 추가</button></div>
+      <div class="msg" id="m-autoreply-msg"></div>
+    </div>
+    <div class="card"><h2>규칙 목록 (${rs.length})</h2><div class="list">
+      ${rs.map(r=>{const b=bots.find(x=>x.id===r.botId),s=servers.find(x=>x.id===r.serverId);
+        return `<div><input type="checkbox" style="width:auto" ${r.on?'checked':''} data-rt="${r.id}">
+        <div class="grow"><b>"${esc(r.trigger)}"</b> → ${esc(r.reply)}<div class="mu">${esc(b?b.name:'(삭제된 봇)')} · ${s?esc(s.name):'모든 서버'} · ${{contains:'포함',exact:'일치',start:'시작'}[r.mode]}</div></div>
+        <button class="btn d s" data-rx="${r.id}">삭제</button></div>`}).join('')||'<div class="mu">규칙이 없습니다.</div>'}
+    </div></div>
+    <div class="card"><h2>동작 로그</h2><div class="log" id="m-autoreply-log" style="white-space:pre-wrap">${esc(logs.join('\n'))}</div></div>`;
+
+    const q=s=>el.querySelector(s);
+    q('#m-autoreply-sa').onclick=()=>{
+      const name=q('#m-autoreply-sn').value.trim(),id=q('#m-autoreply-si').value.trim();
+      if(!name||!/^\d{15,25}$/.test(id))return alert('서버 이름과 올바른 서버 ID(숫자)를 입력하세요.');
+      const s=Hub.servers();if(s.some(x=>x.id===id))return alert('이미 등록된 서버입니다.');
+      s.push({id,name});Hub._saveServers(s);render(el);
+    };
+    el.querySelectorAll('[data-sx]').forEach(b=>b.onclick=()=>{Hub._saveServers(Hub.servers().filter(s=>s.id!==b.dataset.sx));render(el)});
+    q('#m-autoreply-a').onclick=()=>{
+      const botId=q('#m-autoreply-b').value,trigger=q('#m-autoreply-t').value.trim(),reply=q('#m-autoreply-r').value;
+      if(!botId||!trigger||!reply.trim())return q('#m-autoreply-msg').textContent='모두 입력하세요.';
+      const r=rules();r.push({id:uid8(),botId,serverId:q('#m-autoreply-s').value,mode:q('#m-autoreply-m').value,trigger,reply,on:true});save(r);render(el);
+    };
+    el.querySelectorAll('[data-rx]').forEach(b=>b.onclick=()=>{save(rules().filter(r=>r.id!==b.dataset.rx));render(el)});
+    el.querySelectorAll('[data-rt]').forEach(c=>c.onchange=()=>{save(rules().map(r=>r.id===c.dataset.rt?{...r,on:c.checked}:r))});
+  }
+
+  Hub.register({id:ID,name:'자동 응답',icon:'💬',desc:'특정 텍스트가 나오면 봇이 자동으로 답장합니다.',render,onUserChange(){logs.length=0;}});
+})();
+
+/* ---- 시작 ---- */
+(()=>{const s=Backend.session();if(s)Hub.enter(s);})();
+</script>
+</body>
+</html>
